@@ -1,0 +1,4 @@
+SUBNET_PUBLIC_IP=0.0.0.0	# public ip of your server
+SUBNET_NAME=vpn			# any alphanumeric name
+SUBNET_ADDR=192.168.255.	# any /24 subnet for now ending with a dot
+SUBNET_MASK=24			# subnet
