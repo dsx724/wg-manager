@@ -7,6 +7,7 @@ set -e
 FILE_HOSTS=/etc/hosts
 ACTION_ADD=add
 ACTION_REMOVE=remove
+ACTION_LIST=list
 
 if [ ! -e "config.ini" ]; then
 	echo "config.ini not found." >&2
@@ -22,7 +23,9 @@ fi
 
 action="${1,,}"
 
-if [ "$action" != "$ACTION_ADD" ] && [ "$action" != "$ACTION_REMOVE" ]; then
+if [ "$action" != "$ACTION_ADD" ] \
+	&& [ "$action" != "$ACTION_REMOVE" ] \
+	&& [ "$action" != "$ACTION_LIST" ]; then
 	echo "$0 add/remove HOSTNAME" >&2
 	exit 1
 fi
@@ -114,15 +117,16 @@ WG_getHostListenPort(){
 
 target="$2"
 
-if [ "$action" = "$ACTION_ADD" ]; then
-	peer_private_key=$(WG_createPrivateKey)
-	peer_public_key=$(WG_getPublicKey "$peer_private_key")
-	peer_ip=$(WG_getNextIP)
-	WG_addPeer "$target" "$peer_public_key" "$peer_ip"
-	host_public_key=$(WG_getHostPublicKey)
-	host_listen_port=$(WG_getHostListenPort)
+case $action in
+	$ACTION_ADD)
+		peer_private_key=$(WG_createPrivateKey)
+		peer_public_key=$(WG_getPublicKey "$peer_private_key")
+		peer_ip=$(WG_getNextIP)
+		WG_addPeer "$target" "$peer_public_key" "$peer_ip"
+		host_public_key=$(WG_getHostPublicKey)
+		host_listen_port=$(WG_getHostListenPort)
 
-	cat <<EOF
+		cat <<EOF
 sudo apt install -y wireguard-tools
 cat <<${SUBNET_NAME^^} | sudo tee /etc/wireguard/$SUBNET_NAME.conf
 
@@ -140,7 +144,11 @@ ${SUBNET_NAME^^}
 sudo systemctl enable wg-quick@$SUBNET_NAME
 sudo systemctl start wg-quick@$SUBNET_NAME
 EOF
-
-elif [ "$action" = "$ACTION_REMOVE" ]; then
-	WG_removePeer "$target"
-fi
+		;;
+	$ACTION_REMOVE)
+		WG_removePeer "$target"
+		;;
+	$ACTION_LIST)
+		WG_getPeers
+		;;
+esac
