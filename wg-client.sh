@@ -16,9 +16,14 @@ fi
 
 . config.ini
 
-if [ -z "$1" ]; then
+WG_help(){
+	echo "$0 list" >&2
 	echo "$0 add/remove HOSTNAME" >&2
 	exit 1
+}
+
+if [ -z "$1" ]; then
+	WG_help
 fi
 
 action="${1,,}"
@@ -26,8 +31,7 @@ action="${1,,}"
 if [ "$action" != "$ACTION_ADD" ] \
 	&& [ "$action" != "$ACTION_REMOVE" ] \
 	&& [ "$action" != "$ACTION_LIST" ]; then
-	echo "$0 add/remove HOSTNAME" >&2
-	exit 1
+	WG_help
 fi
 
 WG_createPrivateKey(){
